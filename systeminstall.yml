@@ -1,0 +1,84 @@
+---
+- hosts: localhost
+  remote_user: root
+  become: yes
+  
+  
+  tasks:
+    - name: Setting a hostname
+      hostname:
+        name: 'bar1'
+    - name: Setting /etc/hosts
+      lineinfile:
+        dest: /etc/hosts
+        regexp: '^127\.0\.0\.1[ \t]+localhost'
+        line: '127.0.0.1 localhost bar1'
+    - name: Setting root and edison users password
+      shell: python2 -c 'import crypt, os,base64; print crypt.crypt("MyPassword", "$6$"+base64.b64encode(os.urandom(16))+"$")'
+      register: psk
+    - user:
+       user: "edison"
+       password: "{{ psk.stdout }}"
+    - name: set timezone to Asia/Tokyo
+      timezone:
+       name: Europe/Moscow
+    - name: Upgrade packages
+      apt:
+       update_cache: yes
+       upgrade: dist
+       autoremove: yes
+
+    - name: Install dependencies
+      apt:
+       name: "{{ item }}"
+      with_items:
+       - sudo
+       - strace
+       - tcpdump
+       - screen
+       - acpid
+       - vim
+       - python-pip
+       - locate
+       - ntpdate
+    - name: Setting groups for edison user (1/2)
+      getent: 
+       key: edison 
+       database: passwd 
+       fail_key: no 
+    - name: Setting groups for edison user (2/2) 
+      user:
+       name: edison
+       append: yes
+       groups: sudo,dialout
+      when: getent_passwd["edison"] != none
+    - name: Preparing logrotate (1/2)
+      replace:
+       dest: "/etc/logrotate.conf"
+       regexp: "weekly"
+       replace: "daily"
+       backup: yes
+    - name: Preparing logrotate (2/2)
+      replace:
+       dest: "/etc/logrotate.conf"
+       regexp: "#compress"
+       replace: "compress"
+       backup: yes
+    - name: Creating src directory
+      file:
+       path: /root/src
+       state: directory
+       mode: '0755'
+    - name: Download NodeJS 8.x
+      get_url:
+       url: https://deb.nodesource.com/setup_8.x
+       dest: /tmp/setup_8.x
+       mode: '0755'
+    - name: Installing NodeJS 8.x (1/2)
+      shell: /tmp/setup_8.x
+    - name: Installing NodeJS 8.x (2/2)
+      apt:
+       name: nodejs
+
+
+
