@@ -1,0 +1,55 @@
+---
+- hosts: localhost
+  remote_user: root
+  become: yes
+  
+  
+  tasks:
+    - name: Installing Bluetooth (1/x)
+      systemd:
+        name: bluetooth.service
+        enabled: no
+    - name: Installing Bluetooth (2/x)
+      replace:
+       dest: /etc/rc.local
+       regexp: "service bluetooth restart"
+       replace: "#service bluetooth restart"
+    - name: Installing Bluetooth (3/x)
+      apt:
+        name: "{{ item }}"
+      with_items:
+       - libdbus-1-dev
+       - libglib2.0-dev
+       - libudev-dev
+       - libical-dev
+       - libical-dev
+    - name: Installing Bluetooth (4/x)
+      get_url:
+       url: http://www.kernel.org/pub/linux/bluetooth/bluez-5.50.tar.xz
+       dest: /tmp
+       mode: '0744'
+    - name: Installing Bluetooth (5/x)
+      unarchive:
+       src: /tmp/bluez-5.50.tar.xz
+       dest: /root/src
+    - name: Installing Bluetooth (6/x)
+      command: "./configure --prefix=/usr --mandir=/usr/share/man --sysconfdir=/etc --localstatedir=/var --disable-systemd --enable-experimental"
+      args:
+       chdir: /root/src/bluez-5.50
+    - name: Compiling Bluetooth (it makes take for a while...) (7/x)
+      make:
+       chdir: /root/src/bluez-5.50
+       target: all
+       params:
+         NUM_THREADS: 3
+    - name: Copy Bluetooth binary files... (8/x)
+      make:
+       chdir: /root/src/bluez-5.50
+       target: install
+    - name: Copy Bluetooth binary files... (9/x)
+      copy:
+       src: /root/src/bluez-5.50/src/bluetoothd
+       dest: /usr/lib/bluetooth/bluetoothd
+
+
+
