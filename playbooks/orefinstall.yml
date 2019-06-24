@@ -1,8 +1,7 @@
     - name: Running oref0-setup
       shell: |
        set timeout 3000
-       spawn /root/src/oref0/bin/oref0-setup.sh --dir=/root/myopenaps --serial=692777 --cgm=xdrip --ns-host=http://diadon-openaps.herokuapp.com --api-secret=token=openaps-d3126daa5c82825b --tty=/dev/spidev5.1 --max_iob=15 --enable=autotune --radio_locale=WW --btmac=9C:F4:8E:1C:1E:99 --pushover_token=aax8ojs9uq8ff8r5efvxg7szsi3hyn --pushover_user=u8ipysxr6y526bi6xmj1wyp63v764f
-       expect "Continue?"
+       spawn {{ command }}
        send "y\n"
        expect "cron?"
        send "y\n"
@@ -13,4 +12,3 @@
       args:
        executable: /usr/bin/expect
        chdir: /root
-
