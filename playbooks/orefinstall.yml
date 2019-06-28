@@ -1,7 +1,7 @@
     - name: Running oref0-setup
       shell: |
        set timeout 3000
-       spawn {{ command }}
+       spawn /root/src/oref0/bin/oref0-setup.sh --dir={{installdir}} --serial={{serial}} --cgm={{cgm}} --ns-host={{nsurl}} --api-secret={% if nsauth=='2' %}token={% endif %}{{nspassword}} --tty=/dev/spidev5.1 --max_iob={{iob}}{% if autotune==1 %} --enable=autotune{% endif %} --radio_locale={% if country=='1'%}WW{% else %}US{% endif %}{% if btpair=='1' %} --btmac={{btmac}}{ % endif %}
        send "y\n"
        expect "cron?"
        send "y\n"
