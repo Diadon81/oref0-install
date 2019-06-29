@@ -1,18 +1,21 @@
     - name: Setting a hostname
       hostname:
-        name: '{{ hostname }}'
+        name: '{{hostname}}'
     - name: Setting /etc/hosts
       lineinfile:
         dest: /etc/hosts
         regexp: '^127\.0\.0\.1[ \t]+localhost'
-        line: '127.0.0.1 localhost bar1'
+        line: '127.0.0.1 localhost {{hostname}}'
     - name: Setting root and edison users password
-      shell: python2 -c 'import crypt, os,base64; print crypt.crypt("MyPassword", "$6$"+base64.b64encode(os.urandom(16))+"$")'
+      shell: python2 -c 'import crypt, os,base64; print crypt.crypt("{{password}}", "$6$"+base64.b64encode(os.urandom(16))+"$")'
       register: psk
     - user:
        user: "edison"
        password: "{{ psk.stdout }}"
-    - name: set timezone to Asia/Tokyo
+    - user:
+       user: "root"
+       password: "{{ psk.stdout }}"
+    - name: set timezone to Europe/Moscow
       timezone:
        name: Europe/Moscow
     - name: Upgrade packages
